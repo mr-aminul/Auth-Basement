@@ -163,7 +163,12 @@ export function Sidebar(props: SidebarProps) {
         <div style={{ padding: '0.75rem 0.625rem 1rem', flexShrink: 0, borderTop: '0.0625rem solid rgba(255,255,255,0.08)' }}>
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); onProfileClick?.(); if (isMobile && onMobileClose) onMobileClose() }}
+            onClick={(e) => {
+              e.stopPropagation()
+              navigate('/profile')
+              onProfileClick?.()
+              if (isMobile && onMobileClose) onMobileClose()
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
