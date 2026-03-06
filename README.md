@@ -7,7 +7,23 @@ Reusable authentication template for React + TypeScript apps using **Supabase Au
 - **React 18** + **TypeScript** + **Vite**
 - **Supabase** for auth (email/password; optional OAuth via dashboard)
 - Auth context (`useAuth`), protected routes, and minimal default pages (Login, Sign up, Forgot password, Dashboard)
+- **App layout**: sidebar, top bar, and content area with responsive behavior (mobile drawer, tablet/desktop collapse)
 - One codebase: point it at any Supabase project via env vars and reuse per client
+
+## Project structure
+
+```
+src/
+  layout/           # App shell: AppLayout, Sidebar, TopBar, useBreakpoint, AuthenticatedLayout
+  config/           # App config (e.g. layout/nav, brand, page titles)
+  components/       # Shared UI (e.g. ProtectedRoute)
+  contexts/         # React context (AuthContext)
+  lib/              # Supabase client, env
+  pages/            # Route-level pages (Login, SignUp, ForgotPassword, Dashboard)
+  types/            # Shared types (auth)
+  App.tsx
+  main.tsx
+```
 
 ## Prerequisites
 
@@ -53,15 +69,11 @@ Basic auth works without this.
 
 To reuse only the auth layer in an existing React app:
 
-1. Copy these into your app:
-   - `src/env.ts`
-   - `src/lib/supabase.ts`
-   - `src/contexts/AuthContext.tsx`
-   - `src/components/ProtectedRoute.tsx`
-   - `src/types/auth.ts`
-2. Ensure your build resolves the `@/` alias (or update imports).
-3. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in your env.
-4. Wrap your app in `<AuthProvider>` and use `useAuth()` and `<ProtectedRoute>` as needed.
+1. Copy into your app: `src/env.ts`, `src/lib/supabase.ts`, `src/contexts/AuthContext.tsx`, `src/components/ProtectedRoute.tsx`, `src/types/auth.ts`.
+2. Optionally copy `src/layout/` for the app shell (sidebar + top bar) and `src/config/layout.ts` for nav/brand config.
+3. Ensure your build resolves the `@/` alias (or update imports).
+4. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in your env.
+5. Wrap your app in `<AuthProvider>` and use `useAuth()` and `<ProtectedRoute>` as needed.
 
 ## Scripts
 

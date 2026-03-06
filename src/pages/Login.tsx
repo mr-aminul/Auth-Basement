@@ -1,10 +1,17 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { assets, getBackgroundStyle } from '@/config/assets'
+
+const AUTH_PANEL_CSS = `.auth-card input::placeholder { color: #9ca3af; }
+.auth-right-panel { overflow: auto; scrollbar-width: none; -ms-overflow-style: none; }
+.auth-right-panel::-webkit-scrollbar { display: none; }`
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const { signInWithPassword } = useAuth()
@@ -12,7 +19,7 @@ export default function Login() {
   const location = useLocation()
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/'
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setSubmitting(true)
@@ -23,78 +30,169 @@ export default function Login() {
       return
     }
     navigate(from, { replace: true })
-  }
+  }, [signInWithPassword, navigate, from, email, password])
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Sign in</h1>
-        <form onSubmit={handleSubmit} style={styles.form}>
-          {error && (
-            <div style={styles.error} role="alert">
-              {error}
+    <div className="auth-card" style={styles.wrapper}>
+      <style>{AUTH_PANEL_CSS}</style>
+      {/* Left panel */}
+      <div style={styles.leftPanel}>
+          <h1 style={styles.leftTitle}>Welcome back</h1>
+          <p style={styles.leftSubtitle}>
+            Sign in to continue to your account.
+          </p>
+        </div>
+
+        {/* Right panel */}
+        <div className="auth-right-panel" style={styles.rightPanel}>
+          <div style={styles.rightPanelInner}>
+          <h2 style={styles.formTitle}>Login</h2>
+
+          <form onSubmit={handleSubmit} style={styles.form}>
+            {error && (
+              <div style={styles.error} role="alert">
+                {error}
+              </div>
+            )}
+            <label style={styles.field}>
+              <span style={styles.fieldLabel}>Email</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="johnfrans@gmail.com"
+                required
+                autoComplete="email"
+                style={styles.input}
+              />
+            </label>
+            <label style={styles.field}>
+              <span style={styles.fieldLabel}>Password</span>
+              <div style={styles.passwordWrap}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  autoComplete="current-password"
+                  style={styles.inputPassword}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  style={styles.eyeButton}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} color="#6b7280" strokeWidth={1.75} />
+                  ) : (
+                    <Eye size={18} color="#6b7280" strokeWidth={1.75} />
+                  )}
+                </button>
+              </div>
+            </label>
+            <div style={styles.forgotRow}>
+              <Link to="/forgot-password" style={styles.forgotLink}>
+                Forgot password?
+              </Link>
             </div>
-          )}
-          <label style={styles.label}>
-            Email
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              style={styles.input}
-            />
-          </label>
-          <label style={styles.label}>
-            Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              style={styles.input}
-            />
-          </label>
-          <button type="submit" disabled={submitting} style={styles.button}>
-            {submitting ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
-        <p style={styles.footer}>
-          <Link to="/forgot-password" style={styles.link}>
-            Forgot password?
-          </Link>
-          {' · '}
-          <Link to="/signup" style={styles.link}>
-            Sign up
-          </Link>
-        </p>
-      </div>
+            <button type="submit" disabled={submitting} style={styles.submitButton}>
+              {submitting ? 'Signing in…' : 'Login'}
+            </button>
+          </form>
+
+          <p style={styles.footer}>
+            Don&apos;t have an account?{' '}
+            <Link to="/signup" style={styles.footerLink}>
+              Sign Up
+            </Link>
+          </p>
+          </div>
+        </div>
     </div>
   )
 }
 
+const inputBase: React.CSSProperties = {
+  width: '100%',
+  padding: '0.625rem 0.75rem',
+  background: '#f9fafb',
+  border: '0.0625rem solid #e5e7eb',
+  borderRadius: '0.5rem',
+  fontSize: '0.875rem',
+  color: '#111827',
+  boxSizing: 'border-box',
+}
+
 const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '1rem',
-  },
-  card: {
+  wrapper: {
+    position: 'fixed',
+    inset: 0,
     width: '100%',
-    maxWidth: 360,
-    padding: '1.5rem',
-    border: '1px solid #e0e0e0',
-    borderRadius: 8,
-    background: '#fff',
+    height: '100%',
+    display: 'flex',
+    overflow: 'hidden',
+    background: '#e5e7eb',
+    padding: '0.5rem',
+    boxSizing: 'border-box',
+    borderRadius: '0.75rem',
   },
-  title: {
-    margin: '0 0 1.25rem',
-    fontSize: '1.5rem',
-    fontWeight: 600,
+  leftPanel: {
+    flex: 7,
+    minWidth: 0,
+    padding: '2.5rem 2rem',
+    ...getBackgroundStyle(assets.loginBackgroundValue),
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    gap: '0.5rem',
+    minHeight: 0,
+    overflow: 'hidden',
+    borderRadius: '0.5rem',
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  leftTitle: {
+    margin: 0,
+    fontSize: '3.5rem',
+    fontWeight: 700,
+    color: '#fff',
+    lineHeight: 1.1,
+  },
+  leftSubtitle: {
+    margin: 0,
+    fontSize: '1.05rem',
+    fontWeight: 400,
+    color: 'rgba(255,255,255,0.9)',
+    lineHeight: 1.25,
+  },
+  rightPanel: {
+    flex: 3,
+    minWidth: 0,
+    minHeight: 0,
+    padding: '2.5rem 2rem',
+    background: '#fff',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'auto',
+    borderRadius: '0.5rem',
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+  },
+  rightPanelInner: {
+    flex: 1,
+    minHeight: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  formTitle: {
+    margin: '0 0 1rem',
+    fontSize: '1.75rem',
+    fontWeight: 800,
+    color: '#111827',
+    textAlign: 'center',
   },
   form: {
     display: 'flex',
@@ -103,42 +201,68 @@ const styles: Record<string, React.CSSProperties> = {
   },
   error: {
     padding: '0.5rem 0.75rem',
-    background: '#fee',
-    color: '#c00',
-    borderRadius: 4,
-    fontSize: '0.875rem',
+    background: '#fef2f2',
+    color: '#b91c1c',
+    borderRadius: '0.5rem',
+    fontSize: '0.8125rem',
   },
-  label: {
+  field: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.25rem',
+    gap: '0.375rem',
+  },
+  fieldLabel: {
     fontSize: '0.875rem',
     fontWeight: 500,
+    color: '#374151',
   },
-  input: {
-    padding: '0.5rem 0.75rem',
-    border: '1px solid #ccc',
-    borderRadius: 4,
-    fontSize: '1rem',
+  input: inputBase,
+  inputPassword: { ...inputBase, paddingRight: '2.5rem' },
+  passwordWrap: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
   },
-  button: {
-    padding: '0.6rem 1rem',
-    marginTop: '0.25rem',
-    background: '#333',
+  eyeButton: {
+    position: 'absolute',
+    right: '0.5rem',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    padding: '0.25rem',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  forgotRow: {
+    marginTop: '-0.25rem',
+  },
+  forgotLink: {
+    fontSize: '0.8125rem',
+    color: '#171717',
+    textDecoration: 'underline',
+  },
+  submitButton: {
+    marginTop: '0.5rem',
+    padding: '0.75rem 1rem',
+    background: '#171717',
     color: '#fff',
     border: 'none',
-    borderRadius: 4,
-    fontSize: '1rem',
+    borderRadius: '0.5rem',
+    fontSize: '0.9375rem',
+    fontWeight: 600,
     cursor: 'pointer',
   },
   footer: {
-    margin: '1rem 0 0',
-    fontSize: '0.875rem',
-    color: '#666',
-    textAlign: 'center',
+    margin: '1.5rem 0 0',
+    fontSize: '0.8125rem',
+    color: '#6b7280',
   },
-  link: {
-    color: '#333',
+  footerLink: {
+    color: '#171717',
+    fontWeight: 700,
     textDecoration: 'underline',
   },
 }

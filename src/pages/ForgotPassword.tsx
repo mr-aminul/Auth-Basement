@@ -86,10 +86,10 @@ const styles: Record<string, React.CSSProperties> = {
   },
   card: {
     width: '100%',
-    maxWidth: 360,
+    maxWidth: '22.5rem',
     padding: '1.5rem',
-    border: '1px solid #e0e0e0',
-    borderRadius: 8,
+    border: '0.0625rem solid #e0e0e0',
+    borderRadius: '0.5rem',
     background: '#fff',
   },
   title: {
@@ -111,7 +111,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '0.5rem 0.75rem',
     background: '#fee',
     color: '#c00',
-    borderRadius: 4,
+    borderRadius: '0.25rem',
     fontSize: '0.875rem',
   },
   label: {
@@ -123,8 +123,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   input: {
     padding: '0.5rem 0.75rem',
-    border: '1px solid #ccc',
-    borderRadius: 4,
+    border: '0.0625rem solid #ccc',
+    borderRadius: '0.25rem',
     fontSize: '1rem',
   },
   button: {
@@ -133,7 +133,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: '#333',
     color: '#fff',
     border: 'none',
-    borderRadius: 4,
+    borderRadius: '0.25rem',
     fontSize: '1rem',
     cursor: 'pointer',
   },

@@ -13,7 +13,10 @@ type AuthContextValue = {
   user: User | null
   session: Session | null
   loading: boolean
-  signUp: (params: { email: string; password: string }) => Promise<{ error: Error | null }>
+  signUp: (
+    params: { email: string; password: string },
+    options?: { data?: Record<string, unknown> }
+  ) => Promise<{ error: Error | null }>
   signInWithPassword: (params: {
     email: string
     password: string
@@ -47,8 +50,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signUp = useCallback(
-    async (params: { email: string; password: string }) => {
-      const { error } = await supabase.auth.signUp(params)
+    async (
+      params: { email: string; password: string },
+      options?: { data?: Record<string, unknown> }
+    ) => {
+      const { error } = await supabase.auth.signUp({
+        ...params,
+        options: options ? { data: options.data } : undefined,
+      })
       return { error: error ?? null }
     },
     []
