@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { LogOut, X } from 'lucide-react'
 import type { NavItem, BrandConfig } from './types'
+import { ConfirmModal } from '@/components/ConfirmModal'
 
 interface SidebarProps {
   navItems: NavItem[]
@@ -39,6 +40,7 @@ export function Sidebar(props: SidebarProps) {
   const navigate = useNavigate()
   const [isHovered, setIsHovered] = useState(false)
   const [isPinned, setIsPinned] = useState(false)
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
   const collapsed = isMobile ? false : isCollapsed
   const displayCollapsed = isMobile ? false : (collapsed && !isHovered && !isPinned)
   const { name, subtitle, icon: BrandIcon, logoColor = '#2CA85A', logoUrl } = brand
@@ -208,18 +210,18 @@ export function Sidebar(props: SidebarProps) {
           {onSignOut && (displayCollapsed ? (
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); onSignOut(); if (isMobile && onMobileClose) onMobileClose() }}
+              className="sidebar-signout-btn"
+              onClick={(e) => { e.stopPropagation(); setShowSignOutConfirm(true) }}
               title="Sign out"
-              style={{ marginTop: '0.375rem', width: '100%', padding: '0.5rem 0', borderRadius: '0.375rem', border: 'none', background: 'transparent', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'color 0.12s, background 0.12s' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}
+              style={{ marginTop: '0.375rem', width: '100%', padding: '0.5rem 0', borderRadius: '0.375rem', border: 'none', background: 'transparent', color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
             >
               <LogOut size={16} />
             </button>
           ) : (
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); onSignOut(); if (isMobile && onMobileClose) onMobileClose() }}
+              className="sidebar-signout-btn"
+              onClick={(e) => { e.stopPropagation(); setShowSignOutConfirm(true) }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -233,10 +235,7 @@ export function Sidebar(props: SidebarProps) {
                 color: 'rgba(255,255,255,0.5)',
                 fontSize: '0.75rem',
                 cursor: 'pointer',
-                transition: 'color 0.12s, background 0.12s',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.85)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}
             >
               <LogOut size={14} />
               Sign out
@@ -247,6 +246,23 @@ export function Sidebar(props: SidebarProps) {
     </>
   )
 
+  const signOutConfirmModal = (
+    <ConfirmModal
+      open={showSignOutConfirm}
+      onClose={() => setShowSignOutConfirm(false)}
+      onConfirm={() => {
+        setShowSignOutConfirm(false)
+        onSignOut?.()
+        if (isMobile && onMobileClose) onMobileClose()
+      }}
+      title="Sign out?"
+      message="Are you sure you want to sign out?"
+      confirmLabel="Sign out"
+      cancelLabel="Cancel"
+      variant="danger"
+    />
+  )
+
   if (isMobile) {
     return (
       <>
@@ -254,22 +270,26 @@ export function Sidebar(props: SidebarProps) {
         <aside style={{ position: 'fixed', top: 0, left: 0, height: '100vh', width: '16rem', zIndex: 50, background: '#1A3C6E', display: 'flex', flexDirection: 'column', overflow: 'hidden', transform: isMobileOpen ? 'translateX(0)' : 'translateX(-100%)', transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: isMobileOpen ? '0.25rem 0 1.5rem rgba(0,0,0,0.3)' : 'none' }}>
           {inner}
         </aside>
+        {signOutConfirmModal}
       </>
     )
   }
 
   return (
-    <aside
-      style={{ width: displayCollapsed ? '4rem' : '12.5rem', flexShrink: 0, display: 'flex', flexDirection: 'column', background: 'transparent', overflow: 'hidden', transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)' }}
-    >
-      <div
-        role="presentation"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        style={{ width: '100%', minHeight: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}
+    <>
+      <aside
+        style={{ width: displayCollapsed ? '4rem' : '12.5rem', flexShrink: 0, display: 'flex', flexDirection: 'column', background: 'transparent', overflow: 'hidden', transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)' }}
       >
-        {inner}
-      </div>
-    </aside>
+        <div
+          role="presentation"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          style={{ width: '100%', minHeight: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}
+        >
+          {inner}
+        </div>
+      </aside>
+      {signOutConfirmModal}
+    </>
   )
 }

@@ -8,13 +8,13 @@ function getGreeting() {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth()
-  const displayName = user?.email?.split('@')[0] ?? 'there'
+  const { displayName } = useAuth()
+  const name = displayName || 'there'
 
   return (
     <div style={styles.wrapper}>
       <p style={styles.greeting}>
-        {getGreeting()}, <strong>{displayName}</strong>
+        {getGreeting()}, <strong>{name}</strong>
       </p>
     </div>
   )

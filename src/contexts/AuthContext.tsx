@@ -9,10 +9,24 @@ import {
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 
+/** Display name: user_metadata first_name (+ last_name), else email prefix */
+export function getDisplayName(user: User | null): string {
+  if (!user) return ''
+  const meta = user.user_metadata as Record<string, unknown> | undefined
+  const first = typeof meta?.first_name === 'string' ? meta.first_name.trim() : ''
+  const last = typeof meta?.last_name === 'string' ? (meta.last_name as string).trim() : ''
+  const name = [first, last].filter(Boolean).join(' ')
+  if (name) return name
+  const prefix = user.email?.split('@')[0]
+  return prefix ?? ''
+}
+
 type AuthContextValue = {
   user: User | null
   session: Session | null
   loading: boolean
+  /** Display name from sign-up (first/last) or email prefix */
+  displayName: string
   signUp: (
     params: { email: string; password: string },
     options?: { data?: Record<string, unknown> }
@@ -82,10 +96,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error ?? null }
   }, [])
 
+  const displayName = getDisplayName(user)
+
   const value: AuthContextValue = {
     user,
     session,
     loading,
+    displayName,
     signUp,
     signInWithPassword,
     signOut,

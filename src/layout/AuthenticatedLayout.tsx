@@ -7,15 +7,14 @@ import { layoutConfig, getPageTitle } from '@/config/layout'
  * Use as the element of the protected layout route.
  */
 export default function AuthenticatedLayout() {
-  const { user, signOut } = useAuth()
-  const userName = user?.email?.split('@')[0]
+  const { user, displayName, signOut } = useAuth()
 
   return (
     <AppLayout
       {...layoutConfig}
       getPageTitle={getPageTitle}
-      userName={userName}
-      profileLabel={userName}
+      userName={displayName}
+      profileLabel={displayName}
       profileSubtext={user?.email}
       onSignOut={signOut}
     />

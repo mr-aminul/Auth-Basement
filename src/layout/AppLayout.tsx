@@ -67,7 +67,15 @@ export function AppLayout({
     (p) => location.pathname === p || location.pathname.startsWith(p + '/')
   )
 
-  const title = getPageTitle(location.pathname) || location.pathname || 'App'
+  const pathname = location.pathname
+  const title = getPageTitle(pathname) || pathname || 'App'
+  const currentNavItem = navItems
+    .filter((item) => {
+      const end = item.end ?? item.path === '/'
+      return end ? pathname === item.path : pathname === item.path || pathname.startsWith(item.path + '/')
+    })
+    .sort((a, b) => b.path.length - a.path.length)[0]
+  const titleIcon = currentNavItem?.icon
 
   if (isFullScreen) {
     return (
@@ -154,7 +162,10 @@ export function AppLayout({
           >
             <TopBar
               title={title}
+              titleIcon={titleIcon}
               userName={userName}
+              profileSubtext={profileSubtext}
+              onSignOut={onSignOut}
               centerSlot={topBarCenterSlot}
               searchPlaceholder={searchPlaceholder}
               rightSlot={topBarRightSlot}
