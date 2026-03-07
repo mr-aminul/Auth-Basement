@@ -2,9 +2,9 @@ import { useAuth } from '@/contexts/AuthContext'
 
 function getGreeting() {
   const hour = new Date().getHours()
-  if (hour < 12) return 'Good morning'
-  if (hour < 17) return 'Good afternoon'
-  return 'Good evening'
+  if (hour < 12) return 'Good morning!'
+  if (hour < 17) return 'Good afternoon!'
+  return 'Good evening!'
 }
 
 export default function Dashboard() {
@@ -27,6 +27,6 @@ const styles: Record<string, React.CSSProperties> = {
   greeting: {
     margin: 0,
     fontSize: '1.125rem',
-    color: '#4B5563',
+    color: '#1F2937',
   },
 }

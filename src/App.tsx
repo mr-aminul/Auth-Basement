@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { AuthenticatedLayout } from '@/layout'
@@ -8,6 +8,7 @@ import ForgotPassword from '@/pages/ForgotPassword'
 import Dashboard from '@/pages/Dashboard'
 import Reports from '@/pages/Reports'
 import Documents from '@/pages/Documents'
+import DocumentSubPage from '@/pages/DocumentSubPage'
 import Profile from '@/pages/Profile'
 import Settings from '@/pages/Settings'
 
@@ -38,7 +39,12 @@ function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="reports" element={<Reports />} />
-          <Route path="documents" element={<Documents />} />
+          <Route path="documents" element={<Outlet />}>
+            <Route index element={<Documents />} />
+            <Route path="financial-freedom" element={<DocumentSubPage title="Financial freedom" />} />
+            <Route path="life-planning" element={<DocumentSubPage title="Life planning" />} />
+            <Route path="journal" element={<DocumentSubPage title="Journal" />} />
+          </Route>
           <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
         </Route>

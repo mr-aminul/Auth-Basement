@@ -1,10 +1,17 @@
 import type { LucideIcon } from 'lucide-react'
 
+export interface NavItemChild {
+  path: string
+  label: string
+}
+
 export interface NavItem {
   path: string
   label: string
   icon: LucideIcon
   end?: boolean
+  /** Nested sub-items (no icons). Rendered indented under parent with expand/collapse. */
+  children?: NavItemChild[]
 }
 
 export interface BrandConfig {

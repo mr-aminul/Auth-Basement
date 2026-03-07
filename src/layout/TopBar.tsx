@@ -254,10 +254,34 @@ function ProfileDropdown({
   const [open, setOpen] = useState(false)
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navigate = useNavigate()
 
+  const clearCloseTimeout = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+  }
+
+  const handleMouseEnter = () => {
+    if (isMobile) return
+    clearCloseTimeout()
+    setOpen(true)
+  }
+
+  const handleMouseLeave = () => {
+    if (isMobile) return
+    clearCloseTimeout()
+    closeTimeoutRef.current = setTimeout(() => setOpen(false), HOVER_CLOSE_DELAY_MS)
+  }
+
   useEffect(() => {
-    if (!open) return
+    return () => clearCloseTimeout()
+  }, [])
+
+  useEffect(() => {
+    if (!open || isMobile) return
     const handleClick = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false)
@@ -265,7 +289,7 @@ function ProfileDropdown({
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
-  }, [open])
+  }, [open, isMobile])
 
   const handleNav = (path: string) => {
     setOpen(false)
@@ -340,10 +364,15 @@ function ProfileDropdown({
   }
 
   return (
-    <div ref={containerRef} style={{ position: 'relative' }}>
+    <div
+      ref={containerRef}
+      style={{ position: 'relative' }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={isMobile ? () => setOpen((o) => !o) : undefined}
         style={triggerStyle}
         aria-label="Profile menu"
         aria-expanded={open}

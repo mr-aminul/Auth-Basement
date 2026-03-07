@@ -18,7 +18,17 @@ export const layoutConfig: Omit<AppLayoutConfig, 'getPageTitle'> = {
   navItems: [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { path: '/reports', label: 'Reports', icon: BarChart3, end: true },
-    { path: '/documents', label: 'Documents', icon: FileText, end: true },
+    {
+      path: '/documents',
+      label: 'Documents',
+      icon: FileText,
+      end: false,
+      children: [
+        { path: '/documents/financial-freedom', label: 'Financial freedom' },
+        { path: '/documents/life-planning', label: 'Life planning' },
+        { path: '/documents/journal', label: 'Journal' },
+      ],
+    },
     { path: '/profile', label: 'Profile', icon: User, end: true },
     { path: '/settings', label: 'Settings', icon: Settings, end: true },
   ],
@@ -29,6 +39,9 @@ export function getPageTitle(pathname: string): string {
     '/': 'Dashboard',
     '/reports': 'Reports',
     '/documents': 'Documents',
+    '/documents/financial-freedom': 'Financial freedom',
+    '/documents/life-planning': 'Life planning',
+    '/documents/journal': 'Journal',
     '/profile': 'Profile',
     '/settings': 'Settings',
   }

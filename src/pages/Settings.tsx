@@ -5,10 +5,7 @@ export default function Settings() {
 
   return (
     <div style={styles.wrapper}>
-      <h2 style={styles.pageTitle}>Settings</h2>
-
       <section style={styles.section}>
-        <h3 style={styles.sectionTitle}>Notifications</h3>
         <p style={styles.hint}>Show in-app notifications and updates.</p>
         <label style={styles.switchLabel}>
           <input
@@ -22,7 +19,6 @@ export default function Settings() {
       </section>
 
       <section style={styles.section}>
-        <h3 style={styles.sectionTitle}>Language</h3>
         <p style={styles.hint}>Preferred language for the interface.</p>
         <select
           value={settings.language}
@@ -42,22 +38,10 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '0.25rem 0',
     maxWidth: '36rem',
   },
-  pageTitle: {
-    margin: '0 0 1.5rem',
-    fontSize: '1.25rem',
-    fontWeight: 600,
-    color: '#111827',
-  },
   section: {
     marginBottom: '1.75rem',
     paddingBottom: '1.75rem',
     borderBottom: '1px solid #e5e7eb',
-  },
-  sectionTitle: {
-    margin: '0 0 0.25rem',
-    fontSize: '1rem',
-    fontWeight: 600,
-    color: '#111827',
   },
   hint: {
     margin: '0 0 0.75rem',

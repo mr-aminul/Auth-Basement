@@ -1,14 +1,36 @@
-import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, X } from 'lucide-react'
+import { useState, useEffect, useCallback, type ReactNode } from 'react'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { LogOut, X, ChevronDown, ChevronRight, Search } from 'lucide-react'
 import type { NavItem, BrandConfig } from './types'
 import { ConfirmModal } from '@/components/ConfirmModal'
+
+const NAV_ICON_SIZE = 15
+const NAV_ICON_STROKE = 1.75
+const ICON_SLOT_WIDTH = '0.9375rem'
+
+function isPathUnder(parentPath: string, pathname: string): boolean {
+  return pathname === parentPath || (parentPath !== '/' && pathname.startsWith(parentPath + '/'))
+}
+
+const subLinkBaseStyle = {
+  paddingRight: '0.625rem',
+  paddingTop: '0.375rem',
+  paddingBottom: '0.375rem',
+  borderRadius: '0.5rem',
+  textDecoration: 'none' as const,
+  fontSize: '0.8125rem',
+  transition: 'background 0.12s, color 0.12s',
+  overflow: 'hidden' as const,
+  textOverflow: 'ellipsis' as const,
+  whiteSpace: 'nowrap' as const,
+  display: 'block' as const,
+}
 
 interface SidebarProps {
   navItems: NavItem[]
   brand: BrandConfig
   bottomNavItem?: NavItem
-  bottomContent?: React.ReactNode
+  bottomContent?: ReactNode
   /** Profile block at bottom: label (e.g. name), optional subtext (e.g. email) */
   profileLabel?: string
   profileSubtext?: string
@@ -38,29 +60,84 @@ export function Sidebar(props: SidebarProps) {
     onMobileClose,
   } = props
   const navigate = useNavigate()
+  const location = useLocation()
   const [isHovered, setIsHovered] = useState(false)
   const [isPinned, setIsPinned] = useState(false)
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
+  const pathname = location.pathname
+  const [searchQuery, setSearchQuery] = useState('')
+  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() =>
+    new Set(
+      navItems
+        .filter((item) => item.children?.length && isPathUnder(item.path, location.pathname))
+        .map((item) => item.path)
+    )
+  )
+  const query = searchQuery.trim().toLowerCase()
+  const filteredNavItems = query
+    ? navItems
+        .map((item) => {
+          if (!item.children?.length) {
+            return item.label.toLowerCase().includes(query) ? item : null
+          }
+          const matchingChildren = item.children.filter((c) => c.label.toLowerCase().includes(query))
+            if (item.label.toLowerCase().includes(query)) {
+              return { ...item, children: item.children }
+            }
+            if (matchingChildren.length) {
+              return { ...item, children: matchingChildren }
+            }
+            return null
+        })
+        .filter((item): item is NavItem => item != null)
+    : navItems
+  useEffect(() => {
+    if (searchQuery.trim()) return
+    navItems.forEach((item) => {
+      if (!item.children?.length || item.path === '/') return
+      if (isPathUnder(item.path, pathname)) {
+        setExpandedPaths((prev) => (prev.has(item.path) ? prev : new Set(prev).add(item.path)))
+      }
+    })
+  }, [pathname, navItems, searchQuery])
+  const toggleExpanded = useCallback((path: string) => {
+    setExpandedPaths((prev) => {
+      const next = new Set(prev)
+      if (next.has(path)) next.delete(path)
+      else next.add(path)
+      return next
+    })
+  }, [])
   const collapsed = isMobile ? false : isCollapsed
   const displayCollapsed = isMobile ? false : (collapsed && !isHovered && !isPinned)
+  const effectiveExpandedPaths = query
+    ? new Set(filteredNavItems.filter((i) => i.children?.length).map((i) => i.path))
+    : expandedPaths
+  const showChildren = useCallback(
+    (item: NavItem) => Boolean(item.children?.length && !displayCollapsed && effectiveExpandedPaths.has(item.path)),
+    [displayCollapsed, effectiveExpandedPaths]
+  )
   const { name, subtitle, icon: BrandIcon, logoColor = '#2CA85A', logoUrl } = brand
 
-  const iconCell = (isActive: boolean) => ({
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: displayCollapsed ? 'center' : 'flex-start',
-    gap: displayCollapsed ? 0 : '0.625rem',
-    padding: '0.5rem 0.625rem',
-    borderRadius: '0.5rem',
-    textDecoration: 'none',
-    fontSize: '0.8125rem',
-    fontWeight: isActive ? 600 : 400,
-    color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.55)',
-    background: isActive ? 'rgba(255,255,255,0.12)' : 'transparent',
-    transition: 'background 0.12s, color 0.12s',
-    overflow: 'hidden',
-    whiteSpace: 'nowrap' as const,
-  })
+  const iconCell = useCallback(
+    (isActive: boolean) => ({
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: displayCollapsed ? 'center' : 'flex-start',
+      gap: displayCollapsed ? 0 : '0.625rem',
+      padding: '0.5rem 0.625rem',
+      borderRadius: '0.5rem',
+      textDecoration: 'none',
+      fontSize: '0.8125rem',
+      fontWeight: isActive ? 600 : 400,
+      color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.55)',
+      background: isActive ? 'rgba(255,255,255,0.12)' : 'transparent',
+      transition: 'background 0.12s, color 0.12s',
+      overflow: 'hidden',
+      whiteSpace: 'nowrap' as const,
+    }),
+    [displayCollapsed]
+  )
 
   const inner = (
     <>
@@ -117,30 +194,221 @@ export function Sidebar(props: SidebarProps) {
         )}
         {isMobile && (
           <button
-            onClick={(e) => { e.stopPropagation(); onMobileClose?.() }}
+            onClick={(e) => { e.stopPropagation(); if (isMobile && onMobileClose) onMobileClose() }}
             style={{ position: 'absolute', top: '0.625rem', right: '0.625rem', width: '1.75rem', height: '1.75rem', borderRadius: '0.4375rem', border: '0.0625rem solid rgba(255,255,255,0.14)', background: 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(255,255,255,0.7)' }}
           >
             <X size={14} strokeWidth={2.5} />
           </button>
         )}
       </div>
+      <div
+        role="presentation"
+        onClick={() => {
+          if (!isMobile && (isHovered || isPinned)) setIsPinned((p) => !p)
+        }}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, cursor: 'pointer' }}
+      >
       <div style={{ height: '0.0625rem', background: 'rgba(255,255,255,0.08)', marginInline: displayCollapsed ? '0.625rem' : '1rem', transition: 'margin 0.22s cubic-bezier(0.4,0,0.2,1)' }} />
-      <nav style={{ flex: 1, padding: '0.5rem 0.625rem 0', display: 'flex', flexDirection: 'column', gap: '0.125rem', overflowY: 'auto', scrollbarWidth: 'none' }}>
-        {navItems.map(({ icon: Icon, label, path, end }) => (
-          <NavLink
-            key={path}
-            to={path}
-            end={end ?? path === '/'}
-            title={displayCollapsed ? label : undefined}
-            style={({ isActive }) => iconCell(isActive)}
-            onClick={(e) => { e.stopPropagation(); if (isMobile && onMobileClose) onMobileClose() }}
-            onMouseEnter={(e) => { const el = e.currentTarget; if (!el.style.background.includes('0.12')) { el.style.background = 'rgba(255,255,255,0.07)'; el.style.color = 'rgba(255,255,255,0.85)' } }}
-            onMouseLeave={(e) => { const el = e.currentTarget; if (!el.style.background.includes('0.12')) { el.style.background = 'transparent'; el.style.color = 'rgba(255,255,255,0.55)' } }}
+      {displayCollapsed ? (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            ...iconCell(false),
+            margin: '0.5rem 0.625rem 0.375rem',
+            cursor: 'default',
+            background: 'rgba(255,255,255,0.08)',
+          }}
+          title="Search"
+        >
+          <Search size={NAV_ICON_SIZE} strokeWidth={NAV_ICON_STROKE} style={{ flexShrink: 0 }} />
+        </div>
+      ) : (
+        <div onClick={(e) => e.stopPropagation()} style={{ flexShrink: 0, padding: '0.5rem 0.75rem 0.375rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.375rem 0.625rem',
+              borderRadius: '0.5rem',
+              background: 'rgba(255,255,255,0.08)',
+              border: '0.0625rem solid rgba(255,255,255,0.12)',
+            }}
           >
-            <Icon size={15} strokeWidth={1.75} style={{ flexShrink: 0 }} />
-            {!displayCollapsed && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
-          </NavLink>
-        ))}
+            <Search size={14} color="rgba(255,255,255,0.5)" strokeWidth={2} style={{ flexShrink: 0 }} />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search..."
+              aria-label="Search navigation"
+              style={{
+                flex: 1,
+                minWidth: 0,
+                border: 'none',
+                background: 'transparent',
+                color: '#fff',
+                fontSize: '0.8125rem',
+                outline: 'none',
+              }}
+            />
+          </div>
+        </div>
+      )}
+      <nav style={{ flex: 1, padding: '0.5rem 0.625rem 0', display: 'flex', flexDirection: 'column', gap: '0.125rem', overflowY: 'auto', scrollbarWidth: 'none' }}>
+        {filteredNavItems.map((item) => {
+          const { icon: Icon, label, path, end, children } = item
+          const isParentWithChildren = Boolean(children?.length)
+          const expanded = showChildren(item)
+          const parentActive = isPathUnder(path, pathname)
+
+          const handleParentRowAction = () => {
+            toggleExpanded(path)
+            if (!expanded) navigate(path)
+            if (isMobile && onMobileClose) onMobileClose()
+          }
+
+          if (isParentWithChildren) {
+            const rowEl = (
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={expanded}
+                  aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}
+                  title={displayCollapsed ? label : undefined}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    handleParentRowAction()
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleParentRowAction()
+                    }
+                  }}
+                  style={{
+                    ...iconCell(parentActive),
+                    display: 'flex',
+                    alignItems: 'center',
+                    borderRadius: '0.5rem',
+                    minHeight: '2.25rem',
+                    paddingRight: displayCollapsed ? undefined : '0.375rem',
+                    background: parentActive ? 'rgba(255,255,255,0.12)' : 'transparent',
+                    transition: 'background 0.12s',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget
+                    if (!parentActive) {
+                      el.style.background = 'rgba(255,255,255,0.07)'
+                      el.style.color = 'rgba(255,255,255,0.85)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget
+                    if (!parentActive) {
+                      el.style.background = 'transparent'
+                      el.style.color = 'rgba(255,255,255,0.55)'
+                    }
+                  }}
+                >
+                  {displayCollapsed ? (
+                    <Icon size={NAV_ICON_SIZE} strokeWidth={NAV_ICON_STROKE} style={{ flexShrink: 0 }} />
+                  ) : (
+                    <>
+                      <span
+                        style={{
+                          width: ICON_SLOT_WIDTH,
+                          minWidth: ICON_SLOT_WIDTH,
+                          flexShrink: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'flex-start',
+                        }}
+                      >
+                        <Icon size={NAV_ICON_SIZE} strokeWidth={NAV_ICON_STROKE} />
+                      </span>
+                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+                      <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.45)' }}>
+                        {expanded ? <ChevronDown size={14} strokeWidth={2} /> : <ChevronRight size={14} strokeWidth={2} />}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )
+            if (displayCollapsed) {
+              return (
+                <NavLink
+                  key={path}
+                  to={path}
+                  end
+                  title={label}
+                  style={({ isActive }) => iconCell(isActive || parentActive)}
+                  onClick={(e) => { e.stopPropagation(); if (isMobile && onMobileClose) onMobileClose() }}
+                  onMouseEnter={(e) => { const el = e.currentTarget; if (!parentActive) { el.style.background = 'rgba(255,255,255,0.07)'; el.style.color = 'rgba(255,255,255,0.85)' } }}
+                  onMouseLeave={(e) => { const el = e.currentTarget; if (!parentActive) { el.style.background = 'transparent'; el.style.color = 'rgba(255,255,255,0.55)' } }}
+                >
+                  <Icon size={NAV_ICON_SIZE} strokeWidth={NAV_ICON_STROKE} style={{ flexShrink: 0 }} />
+                </NavLink>
+              )
+            }
+            return (
+              <div key={path} style={{ display: 'flex', flexDirection: 'column', gap: '0.0625rem' }}>
+                {rowEl}
+                {expanded &&
+                  children!.map((child) => (
+                    <NavLink
+                      key={child.path}
+                      to={child.path}
+                      end
+                      title={displayCollapsed ? child.label : undefined}
+                      onClick={(e) => { e.stopPropagation(); if (isMobile && onMobileClose) onMobileClose() }}
+                      style={({ isActive }) => ({
+                        ...subLinkBaseStyle,
+                        paddingLeft: displayCollapsed ? '0.5rem' : '2rem',
+                        fontWeight: isActive ? 600 : 400,
+                        color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.55)',
+                        background: isActive ? 'rgba(255,255,255,0.12)' : 'transparent',
+                      })}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget
+                        if (!el.style.background.includes('0.12')) {
+                          el.style.background = 'rgba(255,255,255,0.07)'
+                          el.style.color = 'rgba(255,255,255,0.85)'
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        const el = e.currentTarget
+                        if (!el.style.background.includes('0.12')) {
+                          el.style.background = 'transparent'
+                          el.style.color = 'rgba(255,255,255,0.55)'
+                        }
+                      }}
+                    >
+                      {child.label}
+                    </NavLink>
+                  ))}
+              </div>
+            )
+          }
+
+          return (
+            <NavLink
+              key={path}
+              to={path}
+              end={end ?? path === '/'}
+              title={displayCollapsed ? label : undefined}
+              style={({ isActive }) => iconCell(isActive)}
+              onClick={(e) => { e.stopPropagation(); if (isMobile && onMobileClose) onMobileClose() }}
+              onMouseEnter={(e) => { const el = e.currentTarget; if (!el.style.background.includes('0.12')) { el.style.background = 'rgba(255,255,255,0.07)'; el.style.color = 'rgba(255,255,255,0.85)' } }}
+              onMouseLeave={(e) => { const el = e.currentTarget; if (!el.style.background.includes('0.12')) { el.style.background = 'transparent'; el.style.color = 'rgba(255,255,255,0.55)' } }}
+            >
+              <Icon size={NAV_ICON_SIZE} strokeWidth={NAV_ICON_STROKE} style={{ flexShrink: 0 }} />
+              {!displayCollapsed && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
+            </NavLink>
+          )
+        })}
       </nav>
       {(bottomNavItem || bottomContent) && (
         <div style={{ padding: '0.75rem 0.625rem 1.25rem', flexShrink: 0 }}>
@@ -150,9 +418,9 @@ export function Sidebar(props: SidebarProps) {
               to={bottomNavItem.path}
               title={displayCollapsed ? bottomNavItem.label : undefined}
               onClick={(e) => { e.stopPropagation(); if (isMobile && onMobileClose) onMobileClose() }}
-              style={({ isActive }) => ({ display: 'flex', alignItems: 'center', justifyContent: displayCollapsed ? 'center' : 'flex-start', gap: displayCollapsed ? 0 : '0.625rem', padding: '0.5rem 0.625rem', borderRadius: '0.5rem', textDecoration: 'none', fontSize: '0.8125rem', fontWeight: isActive ? 600 : 400, color: isActive ? '#fff' : 'rgba(255,255,255,0.5)', background: isActive ? 'rgba(255,255,255,0.12)' : 'transparent', marginBottom: '0.5rem', overflow: 'hidden', whiteSpace: 'nowrap', transition: 'background 0.12s, color 0.12s' })}
+              style={({ isActive }) => ({ ...iconCell(isActive), marginBottom: '0.5rem', color: isActive ? '#fff' : 'rgba(255,255,255,0.5)' })}
             >
-              <bottomNavItem.icon size={15} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+              <bottomNavItem.icon size={NAV_ICON_SIZE} strokeWidth={NAV_ICON_STROKE} style={{ flexShrink: 0 }} />
               {!displayCollapsed && <span>{bottomNavItem.label}</span>}
             </NavLink>
           )}
@@ -248,6 +516,7 @@ export function Sidebar(props: SidebarProps) {
           ))}
         </div>
       )}
+      </div>
     </>
   )
 

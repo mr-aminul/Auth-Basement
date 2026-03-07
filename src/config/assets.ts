@@ -31,7 +31,7 @@ export const assets = {
 
 export type AssetsConfig = typeof assets
 
-const isImageUrl = (v: string) => /^(https?:|\/)/.test(v.trim())
+const isImageUrl = (v: string) => /^(https?:|\/)/.test(v.trim());
 
 export function getBackgroundStyle(value: string): CSSProperties {
   if (!value) return {}
