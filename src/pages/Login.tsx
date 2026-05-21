@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { isMockAuthEnabled } from '@/lib/authMode'
+import { MOCK_TEST_EMAIL, MOCK_TEST_PASSWORD } from '@/lib/mockAuth'
 import { assets, getBackgroundStyle } from '@/config/assets'
 
 const AUTH_PANEL_CSS = `.auth-card input::placeholder { color: #9ca3af; }
@@ -32,6 +34,12 @@ export default function Login() {
     navigate(from, { replace: true })
   }, [signInWithPassword, navigate, from, email, password])
 
+  const fillTestCredentials = useCallback(() => {
+    setEmail(MOCK_TEST_EMAIL)
+    setPassword(MOCK_TEST_PASSWORD)
+    setError(null)
+  }, [])
+
   return (
     <div className="auth-card" style={styles.wrapper}>
       <style>{AUTH_PANEL_CSS}</style>
@@ -47,6 +55,18 @@ export default function Login() {
         <div className="auth-right-panel" style={styles.rightPanel}>
           <div style={styles.rightPanelInner}>
           <h2 style={styles.formTitle}>Login</h2>
+
+          {isMockAuthEnabled() && (
+            <button
+              type="button"
+              onClick={fillTestCredentials}
+              style={styles.mockHint}
+              aria-label={`Autofill test credentials: ${MOCK_TEST_EMAIL}`}
+            >
+              <span>Test mode: use any email and password</span>
+              <span style={styles.mockHintAction}>Click to autofill</span>
+            </button>
+          )}
 
           <form onSubmit={handleSubmit} style={styles.form}>
             {error && (
@@ -193,6 +213,27 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
     color: '#111827',
     textAlign: 'center',
+  },
+  mockHint: {
+    margin: '0 0 1rem',
+    padding: '0.5rem 0.75rem',
+    background: '#f0fdf4',
+    color: '#166534',
+    border: '0.0625rem solid #bbf7d0',
+    borderRadius: '0.5rem',
+    fontSize: '0.8125rem',
+    lineHeight: 1.4,
+    textAlign: 'center',
+    width: '100%',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.25rem',
+  },
+  mockHintAction: {
+    fontWeight: 600,
+    textDecoration: 'underline',
   },
   form: {
     display: 'flex',

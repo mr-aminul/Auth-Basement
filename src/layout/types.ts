@@ -18,7 +18,6 @@ export interface BrandConfig {
   name: string
   subtitle?: string
   icon: LucideIcon
-  logoColor?: string
   /** When set, shown as logo image instead of icon. Use @/config/assets for a single source of truth. */
   logoUrl?: string
 }
@@ -29,6 +28,4 @@ export interface AppLayoutConfig {
   getPageTitle?: (pathname: string) => string
   fullScreenPaths?: string[]
   fontFamily?: string
-  outerBg?: string
-  contentCardBg?: string
 }

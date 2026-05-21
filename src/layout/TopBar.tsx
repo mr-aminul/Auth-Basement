@@ -107,9 +107,9 @@ function NotificationBellDropdown() {
       >
         <Bell
           size={14}
-          color={iconHovered || open ? assets.themePrimary : '#6B7280'}
+          color={iconHovered || open ? assets.primary : '#6B7280'}
           strokeWidth={iconHovered || open ? 2.5 : 1.75}
-          fill={iconHovered || open ? assets.themePrimary : 'none'}
+          fill={iconHovered || open ? assets.primary : 'none'}
         />
         {unreadCount > 0 && <span style={badgeStyle} aria-hidden />}
       </button>
@@ -163,7 +163,7 @@ function NotificationBellDropdown() {
                     display: 'block',
                     margin: '0.5rem auto 0',
                     fontSize: '0.75rem',
-                    color: assets.themePrimary,
+                    color: assets.primary,
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
@@ -311,13 +311,13 @@ function ProfileDropdown({
         width: '2rem',
         height: '2rem',
         borderRadius: '0.5rem',
-        background: assets.themePrimary,
+        background: assets.primary,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: '0.625rem',
         fontWeight: 700,
-        color: assets.themePrimaryContrast,
+        color: assets.onPrimary,
         flexShrink: 0,
         letterSpacing: '0.02em',
         cursor: 'pointer',
@@ -386,13 +386,13 @@ function ProfileDropdown({
                 width: '1.625rem',
                 height: '1.625rem',
                 borderRadius: '0.375rem',
-                background: assets.themePrimary,
+                background: assets.primary,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '0.625rem',
                 fontWeight: 700,
-                color: assets.themePrimaryContrast,
+                color: assets.onPrimary,
                 flexShrink: 0,
                 letterSpacing: '0.02em',
               }}
@@ -591,7 +591,7 @@ export function TopBar({
           display: 'flex',
           alignItems: 'center',
           gap: '0.5rem',
-          background: '#F4F7FB',
+          background: assets.surface,
           border: '0.0625rem solid #E8ECF0',
           borderRadius: '0.5rem',
           padding: '0 0.75rem',

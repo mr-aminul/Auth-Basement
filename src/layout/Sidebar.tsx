@@ -3,10 +3,42 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { LogOut, X, ChevronDown, ChevronRight, Search } from 'lucide-react'
 import type { NavItem, BrandConfig } from './types'
 import { ConfirmModal } from '@/components/ConfirmModal'
+import { assets } from '@/config/assets'
 
 const NAV_ICON_SIZE = 15
 const NAV_ICON_STROKE = 1.75
 const ICON_SLOT_WIDTH = '0.9375rem'
+const SIDEBAR_WIDTH_EXPANDED = '15rem'
+const SIDEBAR_WIDTH_COLLAPSED = '4rem'
+const SIDEBAR_WIDTH_MOBILE = '18rem'
+
+const SIDEBAR_NAV_CSS = `
+.sidebar-nav-item,
+.sidebar-nav-sublink {
+  color: rgba(255, 255, 255, 0.55);
+  background: transparent;
+  transition: background 0.12s, color 0.12s;
+}
+.sidebar-nav-item--active,
+.sidebar-nav-sublink--active {
+  background: var(--sidebar-nav-active-bg) !important;
+  color: var(--sidebar-nav-active-fg) !important;
+  font-weight: 600;
+}
+.sidebar-nav-item:hover:not(.sidebar-nav-item--active),
+.sidebar-nav-sublink:hover:not(.sidebar-nav-sublink--active) {
+  background: rgba(255, 255, 255, 0.07) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+`
+
+function navItemClass(active: boolean) {
+  return active ? 'sidebar-nav-item sidebar-nav-item--active' : 'sidebar-nav-item'
+}
+
+function navSubLinkClass(active: boolean) {
+  return active ? 'sidebar-nav-sublink sidebar-nav-sublink--active' : 'sidebar-nav-sublink'
+}
 
 function isPathUnder(parentPath: string, pathname: string): boolean {
   return pathname === parentPath || (parentPath !== '/' && pathname.startsWith(parentPath + '/'))
@@ -117,10 +149,10 @@ export function Sidebar(props: SidebarProps) {
     (item: NavItem) => Boolean(item.children?.length && !displayCollapsed && effectiveExpandedPaths.has(item.path)),
     [displayCollapsed, effectiveExpandedPaths]
   )
-  const { name, subtitle, icon: BrandIcon, logoColor = '#2CA85A', logoUrl } = brand
+  const { name, subtitle, icon: BrandIcon, logoUrl } = brand
 
   const iconCell = useCallback(
-    (isActive: boolean) => ({
+    () => ({
       display: 'flex',
       alignItems: 'center',
       justifyContent: displayCollapsed ? 'center' : 'flex-start',
@@ -129,18 +161,20 @@ export function Sidebar(props: SidebarProps) {
       borderRadius: '0.5rem',
       textDecoration: 'none',
       fontSize: '0.8125rem',
-      fontWeight: isActive ? 600 : 400,
-      color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.55)',
-      background: isActive ? 'rgba(255,255,255,0.12)' : 'transparent',
-      transition: 'background 0.12s, color 0.12s',
       overflow: 'hidden',
       whiteSpace: 'nowrap' as const,
     }),
     [displayCollapsed]
   )
 
+  const navThemeStyle = {
+    ['--sidebar-nav-active-bg' as string]: assets.logo,
+    ['--sidebar-nav-active-fg' as string]: assets.onPrimary,
+  }
+
   const inner = (
     <>
+      <style>{SIDEBAR_NAV_CSS}</style>
       <div
         style={{
           display: 'flex',
@@ -164,7 +198,7 @@ export function Sidebar(props: SidebarProps) {
       >
         <div
           style={{
-            background: logoUrl ? 'transparent' : logoColor,
+            background: logoUrl ? 'transparent' : assets.logo,
             borderRadius: '0.625rem',
             width: '2.125rem',
             height: '2.125rem',
@@ -177,7 +211,7 @@ export function Sidebar(props: SidebarProps) {
           {logoUrl ? (
             <img src={logoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           ) : (
-            <BrandIcon size={18} color="#fff" strokeWidth={2.5} />
+            <BrandIcon size={18} color={assets.onPrimary} strokeWidth={2.5} />
           )}
         </div>
         {!displayCollapsed && (
@@ -213,14 +247,19 @@ export function Sidebar(props: SidebarProps) {
         <div
           onClick={(e) => e.stopPropagation()}
           style={{
-            ...iconCell(false),
+            ...iconCell(),
             margin: '0.5rem 0.625rem 0.375rem',
             cursor: 'default',
             background: 'rgba(255,255,255,0.08)',
           }}
           title="Search"
         >
-          <Search size={NAV_ICON_SIZE} strokeWidth={NAV_ICON_STROKE} style={{ flexShrink: 0 }} />
+          <Search
+            size={NAV_ICON_SIZE}
+            strokeWidth={NAV_ICON_STROKE}
+            color="rgba(255,255,255,0.5)"
+            style={{ flexShrink: 0 }}
+          />
         </div>
       ) : (
         <div onClick={(e) => e.stopPropagation()} style={{ flexShrink: 0, padding: '0.5rem 0.75rem 0.375rem' }}>
@@ -255,7 +294,19 @@ export function Sidebar(props: SidebarProps) {
           </div>
         </div>
       )}
-      <nav style={{ flex: 1, padding: '0.5rem 0.625rem 0', display: 'flex', flexDirection: 'column', gap: '0.125rem', overflowY: 'auto', scrollbarWidth: 'none' }}>
+      <nav
+        className="sidebar-nav"
+        style={{
+          flex: 1,
+          padding: '0.5rem 0.625rem 0',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.125rem',
+          overflowY: 'auto',
+          scrollbarWidth: 'none',
+          ...navThemeStyle,
+        }}
+      >
         {filteredNavItems.map((item) => {
           const { icon: Icon, label, path, end, children } = item
           const isParentWithChildren = Boolean(children?.length)
@@ -287,30 +338,15 @@ export function Sidebar(props: SidebarProps) {
                       handleParentRowAction()
                     }
                   }}
+                  className={navItemClass(parentActive)}
                   style={{
-                    ...iconCell(parentActive),
+                    ...iconCell(),
                     display: 'flex',
                     alignItems: 'center',
                     borderRadius: '0.5rem',
                     minHeight: '2.25rem',
                     paddingRight: displayCollapsed ? undefined : '0.375rem',
-                    background: parentActive ? 'rgba(255,255,255,0.12)' : 'transparent',
-                    transition: 'background 0.12s',
                     cursor: 'pointer',
-                  }}
-                  onMouseEnter={(e) => {
-                    const el = e.currentTarget
-                    if (!parentActive) {
-                      el.style.background = 'rgba(255,255,255,0.07)'
-                      el.style.color = 'rgba(255,255,255,0.85)'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    const el = e.currentTarget
-                    if (!parentActive) {
-                      el.style.background = 'transparent'
-                      el.style.color = 'rgba(255,255,255,0.55)'
-                    }
                   }}
                 >
                   {displayCollapsed ? (
@@ -344,10 +380,9 @@ export function Sidebar(props: SidebarProps) {
                   to={path}
                   end
                   title={label}
-                  style={({ isActive }) => iconCell(isActive || parentActive)}
+                  className={({ isActive }) => navItemClass(isActive || parentActive)}
+                  style={iconCell}
                   onClick={(e) => { e.stopPropagation(); if (isMobile && onMobileClose) onMobileClose() }}
-                  onMouseEnter={(e) => { const el = e.currentTarget; if (!parentActive) { el.style.background = 'rgba(255,255,255,0.07)'; el.style.color = 'rgba(255,255,255,0.85)' } }}
-                  onMouseLeave={(e) => { const el = e.currentTarget; if (!parentActive) { el.style.background = 'transparent'; el.style.color = 'rgba(255,255,255,0.55)' } }}
                 >
                   <Icon size={NAV_ICON_SIZE} strokeWidth={NAV_ICON_STROKE} style={{ flexShrink: 0 }} />
                 </NavLink>
@@ -364,26 +399,10 @@ export function Sidebar(props: SidebarProps) {
                       end
                       title={displayCollapsed ? child.label : undefined}
                       onClick={(e) => { e.stopPropagation(); if (isMobile && onMobileClose) onMobileClose() }}
-                      style={({ isActive }) => ({
+                      className={({ isActive }) => navSubLinkClass(isActive)}
+                      style={{
                         ...subLinkBaseStyle,
                         paddingLeft: displayCollapsed ? '0.5rem' : '2rem',
-                        fontWeight: isActive ? 600 : 400,
-                        color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.55)',
-                        background: isActive ? 'rgba(255,255,255,0.12)' : 'transparent',
-                      })}
-                      onMouseEnter={(e) => {
-                        const el = e.currentTarget
-                        if (!el.style.background.includes('0.12')) {
-                          el.style.background = 'rgba(255,255,255,0.07)'
-                          el.style.color = 'rgba(255,255,255,0.85)'
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        const el = e.currentTarget
-                        if (!el.style.background.includes('0.12')) {
-                          el.style.background = 'transparent'
-                          el.style.color = 'rgba(255,255,255,0.55)'
-                        }
                       }}
                     >
                       {child.label}
@@ -399,10 +418,9 @@ export function Sidebar(props: SidebarProps) {
               to={path}
               end={end ?? path === '/'}
               title={displayCollapsed ? label : undefined}
-              style={({ isActive }) => iconCell(isActive)}
+              className={({ isActive }) => navItemClass(isActive)}
+              style={iconCell}
               onClick={(e) => { e.stopPropagation(); if (isMobile && onMobileClose) onMobileClose() }}
-              onMouseEnter={(e) => { const el = e.currentTarget; if (!el.style.background.includes('0.12')) { el.style.background = 'rgba(255,255,255,0.07)'; el.style.color = 'rgba(255,255,255,0.85)' } }}
-              onMouseLeave={(e) => { const el = e.currentTarget; if (!el.style.background.includes('0.12')) { el.style.background = 'transparent'; el.style.color = 'rgba(255,255,255,0.55)' } }}
             >
               <Icon size={NAV_ICON_SIZE} strokeWidth={NAV_ICON_STROKE} style={{ flexShrink: 0 }} />
               {!displayCollapsed && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
@@ -418,7 +436,8 @@ export function Sidebar(props: SidebarProps) {
               to={bottomNavItem.path}
               title={displayCollapsed ? bottomNavItem.label : undefined}
               onClick={(e) => { e.stopPropagation(); if (isMobile && onMobileClose) onMobileClose() }}
-              style={({ isActive }) => ({ ...iconCell(isActive), marginBottom: '0.5rem', color: isActive ? '#fff' : 'rgba(255,255,255,0.5)' })}
+              className={({ isActive }) => navItemClass(isActive)}
+              style={{ ...iconCell(), marginBottom: '0.5rem' }}
             >
               <bottomNavItem.icon size={NAV_ICON_SIZE} strokeWidth={NAV_ICON_STROKE} style={{ flexShrink: 0 }} />
               {!displayCollapsed && <span>{bottomNavItem.label}</span>}
@@ -541,7 +560,7 @@ export function Sidebar(props: SidebarProps) {
     return (
       <>
         <div onClick={onMobileClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 49, opacity: isMobileOpen ? 1 : 0, pointerEvents: isMobileOpen ? 'auto' : 'none', transition: 'opacity 0.22s' }} />
-        <aside style={{ position: 'fixed', top: 0, left: 0, height: '100vh', width: '16rem', zIndex: 50, background: '#1A3C6E', display: 'flex', flexDirection: 'column', overflow: 'hidden', transform: isMobileOpen ? 'translateX(0)' : 'translateX(-100%)', transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: isMobileOpen ? '0.25rem 0 1.5rem rgba(0,0,0,0.3)' : 'none' }}>
+        <aside style={{ position: 'fixed', top: 0, left: 0, height: '100vh', width: SIDEBAR_WIDTH_MOBILE, zIndex: 50, background: assets.sidebar, display: 'flex', flexDirection: 'column', overflow: 'hidden', transform: isMobileOpen ? 'translateX(0)' : 'translateX(-100%)', transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: isMobileOpen ? '0.25rem 0 1.5rem rgba(0,0,0,0.3)' : 'none' }}>
           {inner}
         </aside>
         {signOutConfirmModal}
@@ -552,7 +571,7 @@ export function Sidebar(props: SidebarProps) {
   return (
     <>
       <aside
-        style={{ width: displayCollapsed ? '4rem' : '12.5rem', flexShrink: 0, display: 'flex', flexDirection: 'column', background: 'transparent', overflow: 'hidden', transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)' }}
+        style={{ width: displayCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED, flexShrink: 0, display: 'flex', flexDirection: 'column', background: 'transparent', overflow: 'hidden', transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)' }}
       >
         <div
           role="presentation"

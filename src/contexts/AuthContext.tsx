@@ -7,6 +7,12 @@ import {
   type ReactNode,
 } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
+import { isMockAuthEnabled } from '@/lib/authMode'
+import {
+  clearStoredMockSession,
+  restoreMockAuth,
+  signInMock,
+} from '@/lib/mockAuth'
 import { supabase } from '@/lib/supabase'
 
 /** Display name: user_metadata first_name (+ last_name), else email prefix */
@@ -47,6 +53,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (isMockAuthEnabled()) {
+      const restored = restoreMockAuth()
+      if (restored) {
+        setSession(restored.session)
+        setUser(restored.user)
+      }
+      setLoading(false)
+      return
+    }
+
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s)
       setUser(s?.user ?? null)
@@ -68,6 +84,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       params: { email: string; password: string },
       options?: { data?: Record<string, unknown> }
     ) => {
+      if (isMockAuthEnabled()) {
+        const { user, session } = signInMock(params.email, options?.data)
+        setUser(user)
+        setSession(session)
+        return { error: null }
+      }
       const { error } = await supabase.auth.signUp({
         ...params,
         options: options ? { data: options.data } : undefined,
@@ -79,6 +101,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithPassword = useCallback(
     async (params: { email: string; password: string }) => {
+      if (isMockAuthEnabled()) {
+        const { user, session } = signInMock(params.email)
+        setUser(user)
+        setSession(session)
+        return { error: null }
+      }
       const { error } = await supabase.auth.signInWithPassword(params)
       return { error: error ?? null }
     },
@@ -86,10 +114,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const signOut = useCallback(async () => {
+    if (isMockAuthEnabled()) {
+      clearStoredMockSession()
+      setUser(null)
+      setSession(null)
+      return
+    }
     await supabase.auth.signOut()
   }, [])
 
   const resetPasswordForEmail = useCallback(async (email: string) => {
+    if (isMockAuthEnabled()) {
+      void email
+      return { error: null }
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/login`,
     })

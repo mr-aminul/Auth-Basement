@@ -41,9 +41,12 @@ function App() {
           <Route path="reports" element={<Reports />} />
           <Route path="documents" element={<Outlet />}>
             <Route index element={<Documents />} />
-            <Route path="financial-freedom" element={<DocumentSubPage title="Financial freedom" />} />
-            <Route path="life-planning" element={<DocumentSubPage title="Life planning" />} />
-            <Route path="journal" element={<DocumentSubPage title="Journal" />} />
+            <Route path="page-1" element={<DocumentSubPage title="Page 1" />} />
+            <Route path="page-2" element={<DocumentSubPage title="Page 2" />} />
+            <Route path="page-3" element={<DocumentSubPage title="Page 3" />} />
+            <Route path="financial-freedom" element={<Navigate to="/documents/page-1" replace />} />
+            <Route path="life-planning" element={<Navigate to="/documents/page-2" replace />} />
+            <Route path="journal" element={<Navigate to="/documents/page-3" replace />} />
           </Route>
           <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />

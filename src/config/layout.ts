@@ -1,18 +1,16 @@
-import { LayoutDashboard, Settings, User, FileText, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, Settings, User, FileText, BarChart3, ShieldCheck } from 'lucide-react'
 import type { AppLayoutConfig } from '@/layout'
-import { assets } from './assets'
+import { assets } from '@/config/assets'
 
 /**
  * App shell config: brand, nav items, and page titles.
  * Extend navItems and getPageTitle when you add more pages.
- * Image/logo URLs are centralized in @/config/assets.
  */
 export const layoutConfig: Omit<AppLayoutConfig, 'getPageTitle'> = {
   brand: {
     name: 'Auth Basement',
     subtitle: 'For Any Webapp',
-    icon: LayoutDashboard,
-    logoColor: '#2CA85A',
+    icon: ShieldCheck,
     logoUrl: assets.logoUrl || undefined,
   },
   navItems: [
@@ -24,9 +22,9 @@ export const layoutConfig: Omit<AppLayoutConfig, 'getPageTitle'> = {
       icon: FileText,
       end: false,
       children: [
-        { path: '/documents/financial-freedom', label: 'Financial freedom' },
-        { path: '/documents/life-planning', label: 'Life planning' },
-        { path: '/documents/journal', label: 'Journal' },
+        { path: '/documents/page-1', label: 'Page 1' },
+        { path: '/documents/page-2', label: 'Page 2' },
+        { path: '/documents/page-3', label: 'Page 3' },
       ],
     },
     { path: '/profile', label: 'Profile', icon: User, end: true },
@@ -39,9 +37,9 @@ export function getPageTitle(pathname: string): string {
     '/': 'Dashboard',
     '/reports': 'Reports',
     '/documents': 'Documents',
-    '/documents/financial-freedom': 'Financial freedom',
-    '/documents/life-planning': 'Life planning',
-    '/documents/journal': 'Journal',
+    '/documents/page-1': 'Page 1',
+    '/documents/page-2': 'Page 2',
+    '/documents/page-3': 'Page 3',
     '/profile': 'Profile',
     '/settings': 'Settings',
   }

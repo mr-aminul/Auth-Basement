@@ -29,8 +29,6 @@ export function AppLayout({
   getPageTitle = () => '',
   fullScreenPaths = [],
   fontFamily = "'Roboto', sans-serif",
-  outerBg = '#1A3C6E',
-  contentCardBg = '#F4F7FB',
   banner,
   bottomNavItem,
   sidebarBottomContent,
@@ -109,7 +107,7 @@ export function AppLayout({
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
-    ...getBackgroundStyle(assets.layoutBackgroundValue || outerBg),
+    ...getBackgroundStyle(assets.background),
   } as const
 
   return (
@@ -153,7 +151,7 @@ export function AppLayout({
             style={{
               flex: 1,
               minHeight: 0,
-              background: contentCardBg,
+              background: assets.surface,
               borderRadius: isMobile ? 0 : '0.75rem',
               overflow: 'hidden',
               display: 'flex',
